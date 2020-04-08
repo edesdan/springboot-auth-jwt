@@ -1,8 +1,8 @@
 package com.sample.springbootauth.security.config;
 
+import com.sample.springbootauth.security.UserDetailsServiceImpl;
 import com.sample.springbootauth.security.filters.JWTAuthenticationFilter;
 import com.sample.springbootauth.security.filters.JWTAuthorizationFilter;
-import com.sample.springbootauth.security.UserDetailsServiceImpl;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -11,6 +11,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -21,10 +22,12 @@ import static com.sample.springbootauth.security.SecurityConstants.REGISTRATION_
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
   private UserDetailsServiceImpl userDetailsService;
   private BCryptPasswordEncoder bCryptPasswordEncoder;
+  private AccessDeniedHandler accessDeniedHandler;
 
-  public WebSecurityConfig(UserDetailsServiceImpl userDetailsService, BCryptPasswordEncoder bCryptPasswordEncoder) {
+  public WebSecurityConfig(UserDetailsServiceImpl userDetailsService, BCryptPasswordEncoder bCryptPasswordEncoder, AccessDeniedHandler accessDeniedHandler) {
     this.userDetailsService = userDetailsService;
     this.bCryptPasswordEncoder = bCryptPasswordEncoder;
+    this.accessDeniedHandler = accessDeniedHandler;
   }
 
   @Override
@@ -36,7 +39,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
       .addFilter(new JWTAuthenticationFilter(authenticationManager()))
       .addFilter(new JWTAuthorizationFilter(authenticationManager()))
       // this disables session creation on Spring Security
-      .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+      .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+      .and()
+      .exceptionHandling().accessDeniedHandler(accessDeniedHandler);
   }
 
   @Override
